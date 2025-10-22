@@ -1,6 +1,6 @@
 using UnityEngine;
-using UnityEngine.InputSystem;   // ✅ 新 Input System
-using UnityEngine.XR;            // ✅ XR 控制器支持
+using UnityEngine.InputSystem;     // 新 Input System（键盘）
+using XRInput = UnityEngine.XR;    // ✅ 给 UnityEngine.XR 起个别名，避免冲突
 
 public class VRKeyboardStickController : MonoBehaviour
 {
@@ -9,7 +9,7 @@ public class VRKeyboardStickController : MonoBehaviour
     public Rigidbody rightStick;
 
     [Header("控制参数")]
-    public float moveDistance = 0.03f;   // 每次移动约 3cm
+    public float moveDistance = 0.03f;   // 每次键盘移动约 3cm
     public float moveSpeed = 3f;         // 平滑移动速度
 
     private Vector3 leftTargetPos;
@@ -23,13 +23,9 @@ public class VRKeyboardStickController : MonoBehaviour
 
     void FixedUpdate()
     {
-        // ✅ 1. 处理键盘输入（新 Input System）
         HandleKeyboardInput();
-
-        // ✅ 2. 处理 VR 控制器输入
         HandleVRInput();
 
-        // ✅ 3. 平滑移动棍子到目标位置
         if (leftStick != null)
             leftStick.MovePosition(Vector3.Lerp(leftStick.position, leftTargetPos, Time.fixedDeltaTime * moveSpeed));
 
@@ -42,32 +38,32 @@ public class VRKeyboardStickController : MonoBehaviour
         if (Keyboard.current == null) return;
 
         // 左棍子 (WASD)
-        if (Keyboard.current.wKey.isPressed) leftTargetPos += Vector3.forward * moveDistance;
-        if (Keyboard.current.sKey.isPressed) leftTargetPos += Vector3.back * moveDistance;
-        if (Keyboard.current.aKey.isPressed) leftTargetPos += Vector3.left * moveDistance;
-        if (Keyboard.current.dKey.isPressed) leftTargetPos += Vector3.right * moveDistance;
+        if (Keyboard.current.tKey.isPressed) leftTargetPos += Vector3.up * moveDistance;
+        if (Keyboard.current.gKey.isPressed) leftTargetPos += Vector3.down * moveDistance;
+        if (Keyboard.current.fKey.isPressed) leftTargetPos += Vector3.left * moveDistance;
+        if (Keyboard.current.hKey.isPressed) leftTargetPos += Vector3.right * moveDistance;
 
         // 右棍子 (↑ ↓ ← →)
-        if (Keyboard.current.upArrowKey.isPressed) rightTargetPos += Vector3.forward * moveDistance;
-        if (Keyboard.current.downArrowKey.isPressed) rightTargetPos += Vector3.back * moveDistance;
+        if (Keyboard.current.upArrowKey.isPressed) rightTargetPos += Vector3.up * moveDistance;
+        if (Keyboard.current.downArrowKey.isPressed) rightTargetPos += Vector3.down * moveDistance;
         if (Keyboard.current.leftArrowKey.isPressed) rightTargetPos += Vector3.left * moveDistance;
         if (Keyboard.current.rightArrowKey.isPressed) rightTargetPos += Vector3.right * moveDistance;
     }
 
     void HandleVRInput()
     {
-        // XRNode 枚举：LeftHand / RightHand
-        InputDevice leftHand = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-        InputDevice rightHand = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+        // ✅ 使用 XRInput 别名明确指定命名空间
+        XRInput.InputDevice leftHand = XRInput.InputDevices.GetDeviceAtXRNode(XRInput.XRNode.LeftHand);
+        XRInput.InputDevice rightHand = XRInput.InputDevices.GetDeviceAtXRNode(XRInput.XRNode.RightHand);
 
-        if (leftHand.isValid && leftHand.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 leftPos))
+        if (leftHand.isValid && leftHand.TryGetFeatureValue(XRInput.CommonUsages.devicePosition, out Vector3 leftPos))
         {
-            leftTargetPos = leftPos;  // ✅ VR 手控制左棍子
+            leftTargetPos = leftPos;
         }
 
-        if (rightHand.isValid && rightHand.TryGetFeatureValue(CommonUsages.devicePosition, out Vector3 rightPos))
+        if (rightHand.isValid && rightHand.TryGetFeatureValue(XRInput.CommonUsages.devicePosition, out Vector3 rightPos))
         {
-            rightTargetPos = rightPos; // ✅ VR 手控制右棍子
+            rightTargetPos = rightPos;
         }
     }
 }
